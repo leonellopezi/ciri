@@ -1,0 +1,230 @@
+0xf424b1de374aaEf1C3e4483BB2E425bb1A76a7a0 contrato
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
+contract Presale {
+    IERC20 public token;
+    address public owner;
+    uint256 public rate = 10000; // Cantidad de tokens por BNB
+    uint256 public maxCrypto = 3000 * 10**18; // Límite máximo de 3000 BNB (en wei)
+    uint256 public totalCryptoCollected; // Criptomoneda recaudada hasta ahora
+
+    event TokensPurchased(address indexed buyer, uint256 amountSpent, uint256 tokensBought);
+    event RateChanged(uint256 newRate);
+    event FundsWithdrawn(address indexed withdrawer, uint256 amount);
+
+    constructor() {
+        token = IERC20(0x999e5397B42C5E4167c46dE2C2dBdBB37F3F2164); // Dirección del token
+        owner = msg.sender;
+    }
+
+    receive() external payable {
+        buyTokens();
+    }
+
+    fallback() external payable {
+        buyTokens();
+    }
+
+    function buyTokens() public payable {
+        uint256 tokenAmount = msg.value * rate;
+        require(totalCryptoCollected + msg.value <= maxCrypto,  "preventa alcanzado");
+        require(token.balanceOf(address(this)) >= tokenAmount, "No hay suficientes tokens en el contrato");
+
+        totalCryptoCollected += msg.value; // Actualiza la cantidad total recaudada
+        token.transfer(msg.sender, tokenAmount);
+
+        emit TokensPurchased(msg.sender, msg.value, tokenAmount);
+    }
+
+    function setRate(uint256 _rate) public {
+        require(msg.sender == owner, "Solo el propietario puede cambiar la tarifa");
+        rate = _rate;
+        emit RateChanged(_rate);
+    }
+
+    function withdrawFunds() public {
+        require(msg.sender == owner, "Solo el propietario puede retirar fondos");
+        uint256 balance = address(this).balance;
+        require(balance > 0, "No hay fondos para retirar");
+        payable(owner).transfer(balance);
+
+        emit FundsWithdrawn(owner, balance);
+    }
+}
+
+
+REMIX 
+
+
+
+[
+	{
+		"inputs": [],
+		"name": "buyTokens",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "withdrawer",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "FundsWithdrawn",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "newRate",
+				"type": "uint256"
+			}
+		],
+		"name": "RateChanged",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_rate",
+				"type": "uint256"
+			}
+		],
+		"name": "setRate",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "buyer",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amountSpent",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "tokensBought",
+				"type": "uint256"
+			}
+		],
+		"name": "TokensPurchased",
+		"type": "event"
+	},
+	{
+		"stateMutability": "payable",
+		"type": "fallback"
+	},
+	{
+		"inputs": [],
+		"name": "withdrawFunds",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"stateMutability": "payable",
+		"type": "receive"
+	},
+	{
+		"inputs": [],
+		"name": "maxCrypto",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "owner",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "rate",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "token",
+		"outputs": [
+			{
+				"internalType": "contract IERC20",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "totalCryptoCollected",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+] 
+
+
+ABI contract
